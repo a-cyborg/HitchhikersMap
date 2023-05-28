@@ -1,12 +1,12 @@
 package org.a_cyb.hitchhikersmap.api.di
 
-import org.a_cyb.hitchhikersmap.api.ApiHelper
-import org.a_cyb.hitchhikersmap.api.ApiHelperImpl
-import org.a_cyb.hitchhikersmap.api.ApiService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import org.a_cyb.hitchhikersmap.api.HorizonsApiHelperImpl
+import org.a_cyb.hitchhikersmap.api.HorizonsApiHelper
+import org.a_cyb.hitchhikersmap.api.HorizonsApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Singleton
@@ -16,7 +16,7 @@ import javax.inject.Singleton
 class ApiModule {
 
     @Provides
-    fun provideBaseUrl() = "https://ssd.jpl.nasa.gov/"
+    fun provideBaseUrl(): String = "https://ssd.jpl.nasa.gov/"
 
     @Singleton
     @Provides
@@ -28,9 +28,10 @@ class ApiModule {
 
     @Singleton
     @Provides
-    fun provideApiService(retrofit: Retrofit) = retrofit.create(ApiService::class.java)
+    fun provideApiService(retrofit: Retrofit): HorizonsApiService =
+        retrofit.create(HorizonsApiService::class.java)
 
     @Singleton
     @Provides
-    fun provideApiHelper(apiHelper: ApiHelperImpl): ApiHelper = apiHelper
+    fun provideApiHelper(apiHelper: HorizonsApiHelperImpl): HorizonsApiHelper = apiHelper
 }

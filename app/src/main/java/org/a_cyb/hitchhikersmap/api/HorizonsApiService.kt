@@ -6,8 +6,10 @@ import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface ApiService {
-
+/**
+ *  https://ssd-api.jpl.nasa.gov/doc/horizons.html
+ */
+interface HorizonsApiService {
     @GET("api/horizons.api")
     fun getPlanetEphemeris(
         @Query("format") format: String = "json",
@@ -17,9 +19,9 @@ interface ApiService {
         @Query("EPHEM_TYPE") ephemType: String = "VECTORS",
         @Query("START_TIME") startTime: String,
         @Query("STOP_TIME") stopTime: String,
+        @Query("STEP_SIZE") stepSize: String,
         @Query("VEC_TABLE") vecTable: Int = 1, // Position components(x,y,z) only.
         @Query("CAL_FORMAT") calFormat: String = "CAL", //type of data output for calender date/time
         @Query("CAL_TYPE") calType: String = "GREGORIAN",
-    ): Call<PlanetResponse>
+    ): Call<HorizonsApiResponse>
 }
-

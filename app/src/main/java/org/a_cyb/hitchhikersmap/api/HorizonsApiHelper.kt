@@ -4,12 +4,11 @@ package org.a_cyb.hitchhikersmap.api
 
 import retrofit2.Call
 
-interface ApiHelper {
-    fun getPlanetEphemeris(
+interface HorizonsApiHelper {
+    suspend fun getBodyEphemeris(
         target: Int,
         startTime: String,
         stopTime: String,
-    ): Call<PlanetResponse>
+        stepSize: String,
+    ): Call<HorizonsApiResponse>
 }
-
-
