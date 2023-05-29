@@ -75,8 +75,7 @@ fun applyXandYRotationAndConvertToOffset(
 ): List<Offset> {
     val rotatedMatrix = applyXRotation(xAngle, applyYRotation(yAngle, targetV))
 
-    return matrixMultiple(rotatedMatrix, projectionMatrix)
-        .map { it.toOffset() }
+    return matrixMultiple(rotatedMatrix, projectionMatrix).map { it.toOffset() }
 }
 
 /**

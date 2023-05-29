@@ -8,3 +8,5 @@ data class HorizonsApiResponse(
     @SerializedName("result")
     val result: String,
 )
+
+

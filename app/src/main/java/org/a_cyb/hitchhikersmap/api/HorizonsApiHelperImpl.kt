@@ -2,7 +2,12 @@
 
 package org.a_cyb.hitchhikersmap.api
 
+import android.util.Log
+import okhttp3.Request
+import okio.Timeout
 import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import javax.inject.Inject
 
 class HorizonsApiHelperImpl @Inject constructor(private val apiService: HorizonsApiService) :
@@ -19,4 +24,19 @@ class HorizonsApiHelperImpl @Inject constructor(private val apiService: Horizons
             stopTime = stopTime,
             stepSize = stepSize,
         )
+
+//    fun getDummyBodyEphemeris(
+//        target: Int,
+//    ): Call<HorizonsApiResponse> {
+//        return object : Call<HorizonsApiResponse> {
+//            override fun enqueue(callback: Callback<HorizonsApiResponse>) {
+//                // Invoke the success callback with the dummy response
+//                callback.onResponse(this, Response.success(HorizonsApiResponse("good", "awesome")))
+//            }
+//
+//            override fun isExecuted(): Boolean {
+//                return false
+//            }
+//        }
+//    }
 }

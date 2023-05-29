@@ -1,5 +1,6 @@
 package org.a_cyb.hitchhikersmap.util
 
+import android.util.Log
 import org.a_cyb.hitchhikersmap.models.CelestialBody
 import org.a_cyb.hitchhikersmap.models.CelestialPosition
 import org.a_cyb.hitchhikersmap.models.XYZVector

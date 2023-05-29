@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -27,8 +28,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle.State.STARTED
 import androidx.lifecycle.repeatOnLifecycle
 import org.a_cyb.hitchhikersmap.models.CelestialBody
+import org.a_cyb.hitchhikersmap.models.XYZVector
 import org.a_cyb.hitchhikersmap.ui.components.ThreeDRotationController
-import org.a_cyb.hitchhikersmap.ui.components.drawCelestialBody
+import org.a_cyb.hitchhikersmap.ui.components.generateRandomColor
+import org.a_cyb.hitchhikersmap.ui.map.MapUiState.*
 import org.a_cyb.hitchhikersmap.ui.theme.HitchhikersMapTheme
 import org.a_cyb.hitchhikersmap.util.*
 
@@ -44,7 +47,7 @@ fun MapScreen(
     val lifecycle = LocalLifecycleOwner.current.lifecycle
 
     val state by produceState<MapUiState>(
-        initialValue = MapUiState.Loading("Ready"),
+        initialValue = Loading("Ready"),
         key1 = lifecycle,
         key2 = viewModel
     ) {
@@ -54,24 +57,24 @@ fun MapScreen(
     }
 
     when (state) {
-        is MapUiState.Loading -> {
-            Log.d(TAG, "MapScreen: is loading = ${(state as MapUiState.Loading).info}")
-            LoadingScreen((state as MapUiState.Loading).info)
+        is Loading -> {
+            Log.d(TAG, "MapScreen: is loading = ${(state as Loading).info}")
+            LoadingScreen((state as Loading).info)
         }
 
-        is MapUiState.Success -> {
+        is Success -> {
             MapScreen(
                 modifier = modifier.fillMaxSize(),
-                bodies = (state as MapUiState.Success).data,
+                bodies = (state as Success).data,
                 debugDoubleTap = viewModel::debugDoubleTap,
             )
         }
 
-        is MapUiState.Error -> {
+        is Error -> {
             // TODO: Create error handling screen
             Log.e(
-                TAG, "MapScreen: ${(state as MapUiState.Error).throwable.message} +" +
-                        "${(state as MapUiState.Error).throwable.stackTrace}"
+                TAG, "MapScreen: ${(state as Error).throwable.message} +" +
+                        "${(state as Error).throwable.stackTrace}"
             )
         }
     }
@@ -145,16 +148,23 @@ internal fun MapScreen(
                     rotationZ = angleZ
                 }) {
 
-            drawCelestialBody(this, bodies)
+//            drawCelestialBody(bodies)
 
-            /* DEBUG */
+            // Draw the sun.
+            drawCircle(
+                color = androidx.compose.ui.graphics.Color.Yellow,
+                radius = 15f,
+                center = center,
+                style = Stroke(width = 2f)
+            )
+
             // Converts the relative position vector(x,y,z) of the object to an offset(x,y).
-//            val pMatrix = applyXandYRotationAndConvertToOffset(
-//                objects.map { it.relativeOffset },
-//                angleX,
-//                angleY
-//            ).map { this.center + it }  // Object's offset is relative to the center object.
-//
+            val pMatrix = applyXandYRotationAndConvertToOffset(
+                bodies.map { it.positions[0].xyz },
+                angleX,
+                angleY
+            ).map { this.center + it }  // Object's offset is relative to the center object.
+
 //            if (scale < 0.3f) {
 //                pMatrix.forEachIndexed { index, offset ->
 //                    drawCircle(
@@ -164,34 +174,35 @@ internal fun MapScreen(
 //                    )
 //                }
 //            } else {
-//                pMatrix.forEachIndexed { index, offset ->
-//                    val brush = Brush.radialGradient(objects[index].color)
-//
-//                    // Create a 3x3 matrix for each object.
-//                    val cubeMatrix = applyXandYRotationAndConvertToOffset(
-//                        threeD3x3CubeMatrix(DEFAULT_OBJECT_RADIUS),
-//                        angleX,
-//                        angleY
-//                    ).map { (offset + it) }
-//
-//                    // Draw two circular lines around the 3x3 cube.
-//                    drawPath(
-//                        getTwoCircumferencePathsFor3x3Cube(cubeMatrix),
-//                        brush,
-//                        1f,
-//                        Stroke(
-//                            3f,
-//                            3f,
-//                            StrokeCap.Round,
-//                            StrokeJoin.Round,
-//                            PathEffect.dashPathEffect(floatArrayOf(3f, 3f), 3f)
-//                        )
-//                    )
-//
-//                    // Draw the vertices of the cube.
-//                    drawPoints(cubeMatrix, PointMode.Points, brush, 5f, StrokeCap.Round)
-//                }
-//            }
+            pMatrix.forEachIndexed { index, offset ->
+                val brush = Brush.radialGradient(
+                    listOf(generateRandomColor(), generateRandomColor(), generateRandomColor())
+                )
+
+                // Create a 3x3 matrix for each object.
+                val cubeMatrix = applyXandYRotationAndConvertToOffset(
+                    threeD3x3CubeMatrix(DEFAULT_OBJECT_RADIUS),
+                    angleX,
+                    angleY
+                ).map { (offset + it) }
+
+                // Draw two circular lines around the 3x3 cube.
+                drawPath(
+                    getTwoCircumferencePathsFor3x3Cube(cubeMatrix),
+                    brush,
+                    1f,
+                    Stroke(
+                        3f,
+                        3f,
+                        StrokeCap.Round,
+                        StrokeJoin.Round,
+                        PathEffect.dashPathEffect(floatArrayOf(3f, 3f), 3f)
+                    )
+                )
+
+                // Draw the vertices of the cube.
+                drawPoints(cubeMatrix, PointMode.Points, brush, 5f, StrokeCap.Round)
+            }
         }
 
         // FIXME: Let's use for drawscope?? and then remove all the modifier 
@@ -236,6 +247,18 @@ fun getTwoCircumferencePathsFor3x3Cube(points: List<Offset>): Path {
         close()
     }
 }
+
+fun devModeVectors() = listOf(
+    XYZVector(0f, 0f, 0f),
+    XYZVector(179f, -32f, -19f),
+    XYZVector(70.894f, 352.14f, 0.7439f),
+    XYZVector(-493f, 44.825f, 0.00157f),
+    XYZVector(-440.14f, 687.56f, 25.206f),
+    XYZVector(2334f, 802.65f, 55.565f),
+    XYZVector(4163f, -2572f, -120.94f),
+    XYZVector(6558f, 7285f, -57.95f),
+    XYZVector(14850f, -1351f, -314.42f),
+)
 
 @Preview
 @Composable

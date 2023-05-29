@@ -21,20 +21,21 @@ class ApiRepository @Inject constructor(
      * @param stepSize: String
      * @return MapUiState
      */
-    fun fetchSolarBodyPositionsWithHorizonsApi(
+    fun fechAndParseEphemerisOfSolarBodies(
         startTime: String = "2023-03-18",
         stopTime: String = "2023-03-19",
         stepSize: String = "12h",
     ): Flow<MapUiState> = flow {
-        val numberOfBody = HorizonsApiBodyId.values().size
         val responses = mutableListOf<String>()
 
         for (body in HorizonsApiBodyId.values()) {
-            emit(MapUiState.Loading("Fetching ${body.ordinal}/$numberOfBody"))
+            emit(MapUiState.Loading("Fetching position of ${body.name}..."))
 
             try {
-                val response = fetchBodyEphemeris(body.id, startTime, stopTime, stepSize)
+                // DEV MODE
+                val response = fetchEphemeris(body.id, startTime, stopTime, stepSize)
                 responses.add(response)
+
                 delay(200)
             } catch (e: Exception) {
                 // TODO: Default data in case something not working.
@@ -43,6 +44,7 @@ class ApiRepository @Inject constructor(
                     TAG, "fetchSolarBodyPositionsWithHorizonsApi: " +
                             "${e.message} \n ${e.stackTrace}"
                 )
+
                 emit(MapUiState.Error(Throwable(e.message)))
             }
         }
@@ -54,7 +56,8 @@ class ApiRepository @Inject constructor(
         emit(MapUiState.Success(bodies))
     }
 
-    private suspend fun fetchBodyEphemeris(
+    // fetchSolarBodyEphemeris
+    private suspend fun fetchEphemeris(
         id: Int,
         startTime: String,
         stopTime: String,
@@ -68,5 +71,15 @@ class ApiRepository @Inject constructor(
             ""
         }
     }
-}
 
+    fun fetchDummySolarBodyPositions(): Flow<MapUiState> = flow {
+        val responses = dummyHorizonApiResponseResults
+        Log.d(TAG, "fetchDummySolarBodyPositions: $responses")
+
+        // Parse the responses
+        emit(MapUiState.Loading("Parsing the responses..."))
+        val bodies = parseHorizonsApiResponses(responses)
+
+        emit(MapUiState.Success(bodies))
+    }
+}
